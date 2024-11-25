@@ -1,0 +1,4 @@
+__pycache__/Model.cpython-311.pyc
+checkpoints/history1.pth
+checkpoints/model_weightsBPE6.pth
+checkpoints/optimizer1.pth
