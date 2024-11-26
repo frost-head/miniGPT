@@ -5,16 +5,17 @@ from dataclasses import dataclass
 import math 
 from torch.nn.attention import sdpa_kernel,SDPBackend
 from torch.cuda.amp import autocast
+import triton
 
 @dataclass
 class modelArguments:
     d_model = 512
-    n_layers = 8
+    n_layers = 10
     n_heads = 16
     vocab_size = 32768
     device = "cuda"
-    max_seq_len = 384
-    max_batch_size  = 4
+    max_seq_len = 256
+    max_batch_size  = 8
     dropout = 0.1
 
 
@@ -153,33 +154,16 @@ class model(nn.Module):
         # inp_embd = F.dropout(inp_embd, self.args.dropout)
         # print(self.enc.shape)
         # print(inp_embd.shape)
-        inp_embd = inp_embd + self.enc
+        inp_embd = inp_embd + self.enc[:inp_embd.size(0), :]
         # print(freq.shape)
-        # prev_layer = inp_embd
+        prev_layer = inp_embd
         for layer in self.enc_layers:
             inp_embd = layer(inp_embd)
-            inp_embd = F.dropout(inp_embd, self.args.dropout)
-            # inp_embd = inp_embd + prev_layer
-            # prev_layer = inp_embd
+            # inp_embd = F.dropout(inp_embd, self.args.dropout)
+            inp_embd = inp_embd + F.dropout(prev_layer, 0.1)
+            prev_layer = inp_embd
             inp_embd = self.norm(inp_embd)
 
-
-        # out_embd = self.shared_emb.embedding(out_token)
-        # print(out_embd[0])
-        # print(self.enc[0])
-        # # out_embd = F.dropout(out_embd, self.args.dropout)
-        # out_embd = out_embd + self.enc
-        # # print(freq.shape)
-        # prev_layer = out_embd
-
-        # for layer in self.dec_layers:
-        #     print(layer)
-        #     out_embd = layer(out_embd, inp_embd)
-
-        #     out_embd = out_embd + prev_layer
-        #     out_embd = F.dropout(out_embd, self.args.dropout)
-        #     prev_layer = out_embd
-        #     out_embd = self.norm(out_embd)
 
 
         output = self.shared_emb.linear(inp_embd)
