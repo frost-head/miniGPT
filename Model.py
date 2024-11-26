@@ -8,12 +8,12 @@ from torch.cuda.amp import autocast
 
 @dataclass
 class modelArguments:
-    d_model = 768
-    n_layers = 6
+    d_model = 512
+    n_layers = 8
     n_heads = 16
     vocab_size = 32768
     device = "cuda"
-    max_seq_len = 512
+    max_seq_len = 384
     max_batch_size  = 4
     dropout = 0.1
 
@@ -66,7 +66,7 @@ class FlashAttention(nn.Module):
         # v = v.contiguous().view(batch_size * self.num_heads, seq_len, self.head_dim)
 
         with sdpa_kernel(backends=[SDPBackend.EFFICIENT_ATTENTION]):    
-            attn_output = F.scaled_dot_product_attention(q,k,v,dropout_p=modelArguments.dropout, is_causal=mask)
+            attn_output = F.scaled_dot_product_attention(q,k,v,dropout_p=modelArguments.dropout, is_causal=True)
 
         # Reshape output
         attn_output = attn_output.view(batch_size, self.num_heads, seq_len, self.head_dim)
