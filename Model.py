@@ -154,7 +154,7 @@ class model(nn.Module):
         # inp_embd = F.dropout(inp_embd, self.args.dropout)
         # print(self.enc.shape)
         # print(inp_embd.shape)
-        inp_embd = inp_embd + self.enc[:inp_embd.size(0), :]
+        inp_embd = inp_embd + self.enc[:inp_embd.size(1), :]
         # print(freq.shape)
         prev_layer = inp_embd
         for layer in self.enc_layers:
